@@ -78,24 +78,33 @@ jobs:
       - name: Create branch, commit, push, and open PR
         if: steps.changes.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          BRANCH_NAME="agent/gstack-${{ github.run_id }}"
+          set -euxo pipefail
 
-          git config user.name "claude[bot]"
+          BRANCH_NAME="agent/gstack-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git checkout -b "$BRANCH_NAME"
-          git add .
-          git commit -m "Apply gstack agent task"
-          git push origin "$BRANCH_NAME"
+          git switch -c "$BRANCH_NAME"
 
-          gh pr create \
-            --base main \
-            --head "$BRANCH_NAME" \
-            --draft \
-            --title "GStack agent task" \
-            --body "## Task
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No staged changes after git add. No PR will be created."
+            exit 0
+          fi
+
+          git commit -m "Apply gstack agent task"
+
+          git push \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:${BRANCH_NAME}"
+
+          cat > pr_body.md <<EOF
+          ## Task
 
           ${{ github.event.inputs.task }}
 
@@ -105,7 +114,15 @@ jobs:
 
           ## Verification
 
-          See the workflow run logs for Claude's summary and any tests run."
+          See the workflow run logs for Claude's summary and any tests run.
+          EOF
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --draft \
+            --title "GStack agent task" \
+            --body-file pr_body.md
 
       - name: No changes made
         if: steps.changes.outputs.has_changes == 'false'
