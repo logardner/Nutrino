@@ -13,6 +13,7 @@ permissions:
   pull-requests: write
   issues: write
   id-token: write
+
 jobs:
   gstack-agent:
     runs-on: ubuntu-latest
@@ -45,19 +46,68 @@ jobs:
             ${{ github.event.inputs.task }}
 
             Requirements:
-            - Create a branch named agent/<short-task-name>.
             - Run /autoplan before editing.
             - Make the smallest focused code change possible.
-            - Add or update tests when appropriate.
-            - Run relevant tests.
-            - Run /review.
-            - Open a draft PR.
-            - Do not merge the PR.
+            - Add or update tests only when appropriate.
+            - Do not create a branch.
+            - Do not commit.
+            - Do not push.
+            - Do not open a PR.
+            - Only modify files in the checked-out workspace.
 
-            PR body must include:
-            - Summary
-            - Changes made
-            - Tests run
-            - Known issues or assumptions
+            Before finishing, summarize:
+            - Files changed
+            - Tests run, if any
+            - Assumptions
           claude_args: |
             --max-turns 20
+            --allowedTools Edit,Read,Write,Bash
+
+      - name: Check for changes
+        id: changes
+        run: |
+          echo "Git status after Claude:"
+          git status --short
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create branch, commit, push, and open PR
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="agent/gstack-${{ github.run_id }}"
+
+          git config user.name "claude[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME"
+          git add .
+          git commit -m "Apply gstack agent task"
+          git push origin "$BRANCH_NAME"
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --draft \
+            --title "GStack agent task" \
+            --body "## Task
+
+          ${{ github.event.inputs.task }}
+
+          ## Notes
+
+          This PR was created by the manual GStack Agent workflow.
+
+          ## Verification
+
+          See the workflow run logs for Claude's summary and any tests run."
+
+      - name: No changes made
+        if: steps.changes.outputs.has_changes == 'false'
+        run: |
+          echo "Claude completed, but no file changes were detected. No PR was created."
