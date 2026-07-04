@@ -1,0 +1,63 @@
+name: GStack Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "What should the agent do?"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  gstack-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install gstack
+        run: |
+          git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+          cd ~/.claude/skills/gstack
+          GSTACK_SKIP_PLAYWRIGHT=1 ./setup --host claude --no-prefix
+
+      - name: Run Claude Code with gstack
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Use gstack for this task.
+
+            Task:
+            ${{ github.event.inputs.task }}
+
+            Requirements:
+            - Create a branch named agent/<short-task-name>.
+            - Run /autoplan before editing.
+            - Make the smallest focused code change possible.
+            - Add or update tests when appropriate.
+            - Run relevant tests.
+            - Run /review.
+            - Open a draft PR.
+            - Do not merge the PR.
+
+            PR body must include:
+            - Summary
+            - Changes made
+            - Tests run
+            - Known issues or assumptions
+          claude_args: |
+            --max-turns 8
