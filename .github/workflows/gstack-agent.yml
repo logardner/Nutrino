@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -60,4 +60,4 @@ jobs:
             - Tests run
             - Known issues or assumptions
           claude_args: |
-            --max-turns 8
+            --max-turns 20
