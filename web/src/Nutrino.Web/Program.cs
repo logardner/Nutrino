@@ -1,9 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+using Nutrino.Web.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+//Database registration
+var cs = builder.Configuration.GetConnectionString("Nutrino");
+builder.Services.AddDbContext<NutrinoDbContext>(o => o.UseMySQL(cs!));
+
+
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

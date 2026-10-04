@@ -1,0 +1,85 @@
+@model List<Nutrino.Web.Data.Food>
+@{
+    ViewData["Title"] = "Foods";
+    var showArchived = (bool)(ViewBag.ShowArchived ?? false);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">My foods</h1>
+    <a asp-action="Create" class="btn btn-primary">+ New food</a>
+</div>
+
+@if (TempData["Message"] is string message)
+{
+    <div class="alert alert-success">@message</div>
+}
+
+<p>
+    @if (showArchived)
+    {
+        <a asp-action="Index">Hide archived foods</a>
+    }
+    else
+    {
+        <a asp-action="Index" asp-route-showArchived="true">Show archived foods</a>
+    }
+</p>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">No foods yet. Click <strong>New food</strong> to add your first one.</p>
+}
+else
+{
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Food</th>
+                <th>Serving</th>
+                <th class="text-end">Calories</th>
+                <th class="text-end">Protein</th>
+                <th class="text-end">Carbs</th>
+                <th class="text-end">Fat</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var food in Model)
+            {
+                <tr class="@(food.IsArchived ? "text-muted" : "")">
+                    <td>
+                        @food.Name
+                        @if (!string.IsNullOrWhiteSpace(food.Brand))
+                        {
+                            <small class="text-muted">(@food.Brand)</small>
+                        }
+                        @if (food.IsArchived)
+                        {
+                            <span class="badge bg-secondary">Archived</span>
+                        }
+                    </td>
+                    <td>@food.ServingSize.ToString("0.##") @food.ServingUnit</td>
+                    <td class="text-end">@food.Calories.ToString("0.##")</td>
+                    <td class="text-end">@food.ProteinG.ToString("0.##") g</td>
+                    <td class="text-end">@food.CarbsG.ToString("0.##") g</td>
+                    <td class="text-end">@food.FatG.ToString("0.##") g</td>
+                    <td class="text-end text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@food.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        @if (food.IsArchived)
+                        {
+                            <form asp-action="Restore" asp-route-id="@food.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">Restore</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Archive" asp-route-id="@food.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Archive</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,69 @@
+@model Nutrino.Web.Data.Food
+@using Nutrino.Web.Data
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" maxlength="120" autofocus />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Brand" class="form-label">Brand <span class="text-muted">(optional)</span></label>
+        <input asp-for="Brand" class="form-control" maxlength="120" />
+    </div>
+
+    <div class="col-md-3">
+        <label asp-for="ServingSize" class="form-label">Serving size</label>
+        <input asp-for="ServingSize" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="ServingSize" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="ServingUnit" class="form-label">Unit</label>
+        <select asp-for="ServingUnit" asp-items="Html.GetEnumSelectList<ServingUnit>()" class="form-select"></select>
+    </div>
+</div>
+
+<h5 class="mt-4">Macros per serving</h5>
+<div class="row g-3">
+    <div class="col-6 col-md-3">
+        <label asp-for="Calories" class="form-label">Calories</label>
+        <input asp-for="Calories" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="Calories" class="text-danger"></span>
+    </div>
+    <div class="col-6 col-md-3">
+        <label asp-for="ProteinG" class="form-label">Protein (g)</label>
+        <input asp-for="ProteinG" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="ProteinG" class="text-danger"></span>
+    </div>
+    <div class="col-6 col-md-3">
+        <label asp-for="CarbsG" class="form-label">Carbs (g)</label>
+        <input asp-for="CarbsG" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="CarbsG" class="text-danger"></span>
+    </div>
+    <div class="col-6 col-md-3">
+        <label asp-for="FatG" class="form-label">Fat (g)</label>
+        <input asp-for="FatG" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="FatG" class="text-danger"></span>
+    </div>
+</div>
+
+<h6 class="mt-4 text-muted">Optional</h6>
+<div class="row g-3">
+    <div class="col-6 col-md-3">
+        <label asp-for="FiberG" class="form-label">Fiber (g)</label>
+        <input asp-for="FiberG" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="FiberG" class="text-danger"></span>
+    </div>
+    <div class="col-6 col-md-3">
+        <label asp-for="SugarG" class="form-label">Sugar (g)</label>
+        <input asp-for="SugarG" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="SugarG" class="text-danger"></span>
+    </div>
+    <div class="col-6 col-md-3">
+        <label asp-for="SodiumMg" class="form-label">Sodium (mg)</label>
+        <input asp-for="SodiumMg" type="number" step="any" min="0" class="form-control" />
+        <span asp-validation-for="SodiumMg" class="text-danger"></span>
+    </div>
+</div>
